@@ -274,7 +274,8 @@ public class AFKManager : BasePlugin, IPluginConfig<AFKManagerConfig>
                     if (data.AfkTime < Config.AfkWarnInterval)
                         continue;
                     
-                    if (data.AfkWarningCount == Config.AfkPunishAfterWarnings)
+                    if (data.AfkWarningCount == Config.AfkPunishAfterWarnings
+                    && playersCount >= Config.SpecKickMinPlayers)
                     {
                         switch (Config.AfkPunishment)
                         {

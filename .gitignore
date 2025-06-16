@@ -1,0 +1,11 @@
+## 忽略不必要的文件
+
+## rider IDE 的项目文件
+.idea
+*/global.json
+
+## ...
+*/obj/*
+*/bin/*
+
+*.user
