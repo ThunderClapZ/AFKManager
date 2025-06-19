@@ -5,6 +5,7 @@ using CounterStrikeSharp.API.Modules.Admin;
 using CounterStrikeSharp.API.Modules.Commands;
 using CounterStrikeSharp.API.Modules.Timers;
 using CounterStrikeSharp.API.Modules.Utils;
+using CounterStrikeSharp.API.ValveConstants.Protobuf;
 
 namespace AFKManager;
 
@@ -37,7 +38,7 @@ public class AFKManager : BasePlugin, IPluginConfig<AFKManagerConfig>
     #region definitions
     public override string ModuleAuthor => "NiGHT & K4ryuu (forked by Глеб Хлебов)";
     public override string ModuleName => "AFK Manager";
-    public override string ModuleVersion => "0.2.6";
+    public override string ModuleVersion => "1.0.0";
     
     public required AFKManagerConfig Config { get; set; }
     private CCSGameRules? _gGameRulesProxy;
@@ -269,13 +270,18 @@ public class AFKManager : BasePlugin, IPluginConfig<AFKManagerConfig>
                     && data.Angles.X == angles.X && data.Angles.Y == angles.Y
                     && data.Origin.X == origin.X && data.Origin.Y == origin.Y)
                 {
+                    // 小于最低要求的数量,不增加挂机时间
+                    if (playersCount < Config.SpecKickMinPlayers)
+                    {
+                        data.AfkWarningCount = 0;
+                        data.AfkTime = 0;
+                        continue;
+                    }
                     data.AfkTime += Config.Timer;
                     
                     if (data.AfkTime < Config.AfkWarnInterval)
                         continue;
-                    
-                    if (data.AfkWarningCount == Config.AfkPunishAfterWarnings
-                    && playersCount >= Config.SpecKickMinPlayers)
+                    if (data.AfkWarningCount == Config.AfkPunishAfterWarnings && playersCount >= Config.SpecKickMinPlayers)
                     {
                         switch (Config.AfkPunishment)
                         {
@@ -293,8 +299,8 @@ public class AFKManager : BasePlugin, IPluginConfig<AFKManagerConfig>
                                 break;
                             case 2:
                                 Server.PrintToChatAll(ReplaceVars(player, Localizer["ChatKickMessage"].Value));
-                                Server.ExecuteCommand($"kickid {player.UserId}");
-                                
+                                // Server.ExecuteCommand($"kickid {player.UserId}");
+                                player.Disconnect(NetworkDisconnectionReason.NETWORK_DISCONNECT_KICKED_IDLE);
                                 break;
                         }
                         
